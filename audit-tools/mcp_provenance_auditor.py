@@ -6,12 +6,14 @@ Part of Berne-Provenance-Toolkit (Educational & Forensic Tooling Only).
 Inspects MCP JSON-RPC responses or scraped text files against a canonical
 SHA-256 provenance manifest (`provenance-chain.jsonl`) and detects:
   1. BERNE-6BIS-PATERNITY  : Content matches anchored source, but author/ORCID is stripped.
-  2. BERNE-6BIS-INTEGRITY : Author/DOI is cited, but SHA-256 digest fails (silent mutation).
+  2. BERNE-6BIS-INTEGRITY : Claimed verbatim (`modified != True`), but SHA-256 digest fails.
   3. PROVENANCE-HOP-DRIFT : Response cites a middle-hop scraper instead of canonical URI/DOI.
-  4. MCP-SCHEMA-UNBOUND   : MCP payload omits structured provenance metadata fields.
+  4. MCP-SCHEMA-UNBOUND   : MCP payload omits required structured provenance metadata fields.
 
 Usage:
-  python3 audit-tools/mcp_provenance_auditor.py --manifest manifest/provenance-chain.jsonl --inspect payload.json
+  python3 audit-tools/mcp_provenance_auditor.py \
+    --manifest manifest/provenance-chain.example.jsonl \
+    --inspect sample_mcp_response.json
 """
 
 from __future__ import annotations
@@ -25,7 +27,14 @@ from pathlib import Path
 from typing import Any
 
 
-REQUIRED_PROVENANCE_FIELDS = ("author_orcid", "source_uri", "license_spdx", "sha256")
+REQUIRED_PROVENANCE_FIELDS = (
+    "author_name",
+    "author_orcid",
+    "source_uri",
+    "license_spdx",
+    "sha256",
+    "modified",
+)
 
 
 def canonical_sha256(text: str) -> str:
@@ -35,7 +44,7 @@ def canonical_sha256(text: str) -> str:
 
 
 def extract_shingles(text: str, k: int = 5) -> set[tuple[str, ...]]:
-    """Builds lowercase word k-shingles for overlap detection even when text is truncated."""
+    """Builds lowercase word k-shingles for overlap detection even when text is excerpted."""
     tokens = re.findall(r"[a-z0-9_]+", text.lower())
     if len(tokens) < k:
         return {tuple(tokens)} if tokens else set()
@@ -47,7 +56,9 @@ def load_manifest(manifest_path: Path) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
     if not manifest_path.exists():
         raise FileNotFoundError(f"Manifest not found: {manifest_path}")
-    for line_no, raw_line in enumerate(manifest_path.read_text(encoding="utf-8").splitlines(), start=1):
+    for line_no, raw_line in enumerate(
+        manifest_path.read_text(encoding="utf-8").splitlines(), start=1
+    ):
         line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
@@ -64,24 +75,20 @@ def extract_payload_fields(target_path: Path) -> tuple[str, dict[str, Any], bool
     raw = target_path.read_text(encoding="utf-8")
     if target_path.suffix.lower() == ".json":
         data = json.loads(raw)
-        # Support top-level dict or MCP result wrapper (`{"result": {...}}`)
         container = data.get("result", data) if isinstance(data, dict) else {}
         if not isinstance(container, dict):
             container = {}
-        text_body = (
-            container.get("text")
-            or container.get("content")
-            or (
-                "\n".join(
-                    block.get("text", "")
-                    for block in container.get("content", [])
-                    if isinstance(block, dict)
-                )
-                if isinstance(container.get("content"), list)
-                else ""
+
+        raw_content = container.get("content")
+        if isinstance(raw_content, list):
+            text_body = "\n".join(
+                block.get("text", "")
+                for block in raw_content
+                if isinstance(block, dict)
             )
-            or json.dumps(container)
-        )
+        else:
+            text_body = container.get("text") or raw_content or json.dumps(container)
+
         meta = container.get("provenance", container)
         if not isinstance(meta, dict):
             meta = {}
@@ -99,7 +106,7 @@ def audit_target(manifest: list[dict[str, Any]], target_path: Path) -> dict[str,
     findings: list[dict[str, str]] = []
 
     if is_json:
-        missing_fields = [f for f in REQUIRED_PROVENANCE_FIELDS if not meta.get(f)]
+        missing_fields = [f for f in REQUIRED_PROVENANCE_FIELDS if f not in meta or meta.get(f) in (None, "")]
         if missing_fields:
             findings.append(
                 {
@@ -116,10 +123,8 @@ def audit_target(manifest: list[dict[str, Any]], target_path: Path) -> dict[str,
         entry_sha = str(entry.get("sha256", "")).lower()
         entry_doi = str(entry.get("canonical_doi", ""))
         entry_uri = str(entry.get("canonical_uri", ""))
-        entry_orcid = str(entry.get("author_orcid", ""))
         entry_excerpt = str(entry.get("excerpt", ""))
 
-        # Check exact hash match or metadata reference match
         if entry_sha and observed_sha == entry_sha:
             matched_entry = entry
             best_overlap = 1.0
@@ -147,7 +152,7 @@ def audit_target(manifest: list[dict[str, Any]], target_path: Path) -> dict[str,
         # 1. Paternity check (Berne Art. 6bis)
         has_author = bool(
             (expected_orcid and (expected_orcid in text_body or meta.get("author_orcid") == expected_orcid))
-            or (expected_author and expected_author.lower() in text_body.lower())
+            or (expected_author and (expected_author.lower() in text_body.lower() or str(meta.get("author_name", "")).lower() == expected_author.lower()))
         )
         if not has_author:
             findings.append(
@@ -158,13 +163,14 @@ def audit_target(manifest: list[dict[str, Any]], target_path: Path) -> dict[str,
                 }
             )
 
-        # 2. Integrity check (Berne Art. 6bis)
-        if expected_sha and observed_sha != expected_sha:
+        # 2. Integrity check (Berne Art. 6bis) — only fires if not explicitly flagged modified=True
+        is_declared_modified = meta.get("modified") is True
+        if expected_sha and observed_sha != expected_sha and not is_declared_modified:
             findings.append(
                 {
                     "code": "BERNE-6BIS-INTEGRITY",
                     "severity": "HIGH",
-                    "detail": f"SHA-256 mismatch for '{matched_entry.get('artifact_id', 'unknown')}': expected {expected_sha[:16]}..., observed {observed_sha[:16]}... (possible silent mutation or truncation).",
+                    "detail": f"SHA-256 mismatch for '{matched_entry.get('artifact_id', 'unknown')}' (modified=false): expected {expected_sha[:16]}..., observed {observed_sha[:16]}... (silent mutation or undeclared truncation).",
                 }
             )
 
