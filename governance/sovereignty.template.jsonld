@@ -1,0 +1,45 @@
+{
+  "@context": [
+    "https://schema.org",
+    "http://w3.org"
+  ],
+  "@type": ["CreativeWork", "odrl:Policy"],
+  "@id": "https://doi.org",
+  "name": "<YOUR_WORK_OR_REPOSITORY_TITLE>",
+  "author": {
+    "@type": "Person",
+    "name": "<YOUR_FULL_NAME>",
+    "identifier": "https://orcid.org"
+  },
+  "legislationResponsible": [
+    "Berne Convention for the Protection of Literary and Artistic Works (Articles 2, 5(2), and 6bis)",
+    "Applicable National Moral-Rights Statutes (e.g., Irish CRRA 2000 Ch. 7 / EU Copyright Directives)"
+  ],
+  "odrl:profile": "http://w3.org",
+  "odrl:permission": [
+    {
+      "odrl:action": ["odrl:read", "odrl:reproduce", "odrl:derive"],
+      "odrl:duty": [
+        {
+          "odrl:action": "odrl:attribute",
+          "description": "Preserve canonical author name, ORCID, upstream DOI/URI, and SPDX license notice."
+        },
+        {
+          "odrl:action": "odrl:ensureExclusivity",
+          "description": "Flag any LLM summarization, truncation, or transformation with modified=true and never attribute mutated text as verbatim."
+        }
+      ]
+    }
+  ],
+  "odrl:prohibition": [
+    {
+      "odrl:action": ["odrl:anonymize", "odrl:distort"],
+      "description": "Stripping attribution metadata or silently altering integrity digests in MCP servers and multi-hop aggregators is prohibited."
+    }
+  ],
+  "cryptographicAnchor": {
+    "algorithm": "Ed25519",
+    "fingerprint": "SHA256:<YOUR_ED25519_PUBLIC_KEY_FINGERPRINT>",
+    "mode": "Descriptive-Only · Non-Activation"
+  }
+}
