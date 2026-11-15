@@ -1,0 +1,7 @@
+- id: berne-provenance-self-test
+  name: Verify Berne-Provenance-Toolkit Self-Test
+  description: Runs the offline zero-dependency forensic provenance self-test harness.
+  entry: bash run_self_test.sh
+  language: system
+  pass_filenames: false
+  always_run: true
