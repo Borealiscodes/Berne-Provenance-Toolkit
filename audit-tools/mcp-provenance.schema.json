@@ -1,68 +1,135 @@
 {
   "$schema": "https://json-schema.org",
-  "$id": "https://berne-provenance-toolkit.org",
-  "title": "Provenance-Preserving MCP Tool Response Envelope",
-  "description": "Vendor- and author-agnostic JSON Schema enforcing Berne Convention Article 6bis attribution, SHA-256 integrity digests, and canonical upstream URI preservation on Model Context Protocol (MCP) tool responses.",
+  "$id": "https://github.com",
+  "title": "Berne-Provenance MCP Tool Envelope (v1.1+)",
+  "description": "Drop-in JSON Schema for provenance-safe Model Context Protocol (MCP) responses supporting verbatim quotes, excerpts, multi-source synthesis, and dual-hash binary/PDF records.",
   "type": "object",
-  "required": ["text", "provenance"],
+  "required": [
+    "schema_version",
+    "content",
+    "synthesis_mode",
+    "modified",
+    "sources"
+  ],
   "properties": {
-    "text": {
+    "schema_version": {
       "type": "string",
-      "minLength": 1,
-      "description": "Retrieved or excerpted content payload."
+      "const": "1.1.0"
     },
-    "provenance": {
+    "content": {
+      "type": "string",
+      "description": "The primary text payload returned by the MCP server or tool."
+    },
+    "synthesis_mode": {
+      "type": "string",
+      "enum": ["verbatim", "excerpt", "synthesis"],
+      "description": "Declares whether content is an exact copy ('verbatim'), a direct subset ('excerpt'), or a multi-source summary/blend ('synthesis')."
+    },
+    "modified": {
+      "type": "boolean",
+      "description": "Must be false if and only if synthesis_mode is 'verbatim' and the text matches the canonical source digest."
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 hex digest of the normalized UTF-8 content payload."
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered list of upstream authored artifacts contributing to the output.",
+      "items": {
+        "$ref": "#/$defs/SourceAttribution"
+      }
+    },
+    "governance": {
       "type": "object",
-      "required": [
-        "author_name",
-        "author_orcid",
-        "source_uri",
-        "license_spdx",
-        "sha256",
-        "modified"
-      ],
       "properties": {
-        "author_name": {
+        "berne_moral_rights": {
           "type": "string",
-          "minLength": 1,
-          "description": "Canonical human creator name (Berne Art. 6bis paternity)."
+          "default": "Berne Convention Art. 6bis (Attribution & Integrity Retained)"
         },
-        "author_orcid": {
+        "odrl_policy_uri": {
           "type": "string",
-          "pattern": "^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$",
-          "description": "Persistent ORCID identifier of the human author."
-        },
-        "source_uri": {
-          "type": "string",
-          "format": "uri",
-          "description": "Canonical upstream repository URL or DOI URI (never a middle-hop scraper)."
-        },
-        "canonical_doi": {
-          "type": "string",
-          "pattern": "^10\\.[0-9]{4,9}/[-._;()/:A-Za-z0-9]+$",
-          "description": "Optional persistent Digital Object Identifier anchoring the upstream work."
-        },
-        "license_spdx": {
-          "type": "string",
-          "minLength": 1,
-          "description": "SPDX license identifier (e.g., MIT, Apache-2.0, CC-BY-4.0)."
-        },
-        "sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$",
-          "description": "Lowercase hex SHA-256 digest of the canonical UTF-8 source text."
-        },
-        "modified": {
-          "type": "boolean",
-          "description": "Must be true if the text was summarized, truncated, or transformed by an LLM or indexer."
-        },
-        "ed25519_fingerprint": {
-          "type": "string",
-          "description": "Optional Ed25519 public key fingerprint attesting to the canonical release."
+          "format": "uri"
         }
       },
       "additionalProperties": true
     }
   },
-  "additionalProperties": true
+  "allOf": [
+    {
+      "if": {
+        "properties": { "synthesis_mode": { "const": "verbatim" } }
+      },
+      "then": {
+        "properties": { "modified": { "const": false } }
+      }
+    },
+    {
+      "if": {
+        "properties": { "synthesis_mode": { "const": "synthesis" } }
+      },
+      "then": {
+        "properties": { "modified": { "const": true } }
+      }
+    }
+  ],
+  "$defs": {
+    "SourceAttribution": {
+      "type": "object",
+      "required": [
+        "author_name",
+        "source_uri",
+        "license_spdx",
+        "sha256"
+      ],
+      "properties": {
+        "author_name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Canonical human author name (Berne Art. 6bis paternity)."
+        },
+        "author_orcid": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$",
+          "description": "Persistent 16-digit ORCID identifier."
+        },
+        "source_uri": {
+          "type": "string",
+          "format": "uri",
+          "description": "Canonical upstream DOI, Zenodo record, or origin repository URL."
+        },
+        "file_path": {
+          "type": "string",
+          "description": "Relative path within the canonical repository."
+        },
+        "license_spdx": {
+          "type": "string",
+          "minLength": 1,
+          "description": "SPDX license identifier (e.g., MIT, CC-BY-4.0, Apache-2.0)."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Primary canonical SHA-256 digest (extracted UTF-8 text for PDFs, raw UTF-8 for text/code)."
+        },
+        "binary_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Optional raw container SHA-256 digest for binary formats such as .pdf."
+        },
+        "matched_chunk_hashes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "description": "Paragraph- or section-level SHA-256 digests referenced in excerpt or synthesis mode."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
 }
