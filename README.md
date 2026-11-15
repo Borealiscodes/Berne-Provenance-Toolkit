@@ -1,97 +1,117 @@
 # ⚖️ Berne-Provenance-Toolkit
-**An Operational Forensic CLI Tool & Author-Rights Curriculum for Auditing MCP Servers, Scrapers, and Multi-Hop Aggregators**
+**An Operational Forensic CLI Tool, Middleware & Author-Rights Curriculum for Auditing MCP Servers, Scrapers, and Multi-Hop Aggregators**
 
-**Type:** Practical Software Tool (Zero-Dependency Python 3 CLI + JSON Schemas) & Educational Curriculum  
+**Type:** Practical Software Prototype (Zero-Dependency Python 3 CLI + JSON Schemas + Middleware) & Educational Curriculum  
+**Version:** `v2.0.0` *(Prototype — Pre-Production)*  
 **Governance Posture:** Educational • Forensic • Descriptive-Only • Sealed-Layer Neutral (`Author Sovereignty Charter v1.2`)  
-**Canonical Lineage Anchor:** [`DOI: 10.5281/zenodo.24149283`](https://doi.org)  
+**Canonical Lineage Anchor:** [`DOI: 10.5281/zenodo.24149283`](https://doi.org) · [`DOI: 10.5281/zenodo.24240994`](https://doi.org)  
 **Maintainer:** Borealis S. Hedling (`ORCID: 0009-0004-7968-5707`) · Dublin, Ireland  
 
 ---
 
-## 1. What This Tool Does
-`Berne-Provenance-Toolkit` is a **hands-on forensic utility and educational guide** built for writers, researchers, and open-source developers. Instead of relying on vague policy wishes, it gives creators two concrete instruments:
-1. **Zero-Dependency Forensic CLI Tools (`audit-tools/`):** Local Python 3 utilities (`generate_manifest.py` and `mcp_provenance_auditor.py`) that anchor canonical files with `SHA-256` digests and inspect Model Context Protocol (`MCP`) JSON responses or scraped Markdown files for stripped attribution, silent text alteration, and middle-hop provenance laundering.
-2. **A Plain-Language Rights Curriculum (`curriculum/`):** Short, practical guides explaining how international copyright law protects human authors automatically—even when code or essays are shared under open licenses like `MIT` or `CC-BY-4.0`.
+## ⚠️ Prototype Status & Epistemic Humility Notice
 
-*Disclaimer: This is a forensic software tool and educational resource. It does not constitute formal legal advice and operates strictly under non-activation boundaries.*
+> **No Provenance System Is Infallible — Unverified Prototype Code:**  
+> `Berne-Provenance-Toolkit` is an early-stage research prototype that has not undergone independent security auditing or large-scale production testing. It aims to surface structural anomalies via cryptographic hashes and shingle-overlap heuristics rather than provide adversarial immunity.
+>
+> For production-grade security and content credentials, users should pair this toolkit with established frameworks:
+> * **[C2PA](https://github.com):** Industry-standard cryptographic manifests for digital media.
+> * **[Sigstore (`cosign` / `rekor`)](https://github.com):** Keyless code signing and transparency logs.
+> * **[in-toto](https://github.com) & [SLSA](https://github.com):** Software supply-chain integrity and verifiable builds.
+> * **[SPDX](https://github.com) & [CITATION.cff](https://github.com):** Standardized SBOM licensing and academic citation formats.
 
----
-
-## 2. The Berne Convention in Plain English
-The **Berne Convention for the Protection of Literary and Artistic Works** (1886, ratified by over 180 countries including Ireland, the EU, the UK, and the US) is the foundational international treaty protecting creative and technical works—including essays, documentation, whitepapers, and software source code.
-
-Three core rules make the Berne Convention directly relevant to AI ingestion and MCP pipelines:
-* **Automatic Protection Without Formalities (Article 5(2)):** Copyright attaches automatically the moment a human fixes an original work in writing or code. Authors do not need to register with a government office, pay fees, or hide behind a paywall for their rights to exist.
-* **Original Intellectual Creation (Article 2):** Protection covers works reflecting free, deliberate human creative choices. Automated scraping, bulk repository mirroring, and unedited LLM text mutations do not create new independent authorship or erase upstream human origin.
-* **Inalienable Moral Rights (Article 6bis · Irish CRRA 2000, Chapter 7):** Separate from economic rights, moral rights protect the human author's personal bond with their work:
-  * **Right of Attribution (Paternity):** The right to be identified as the creator of your work.
-  * **Right of Integrity:** The right to object to distortion, mutilation, or silent alteration that harms your reputation or misrepresents your meaning.
-  * **Protection Against False Attribution:** The right not to have someone else's automated output or altered text falsely credited to you.
+*Disclaimer: This repository is a forensic software prototype and educational resource and does not constitute formal legal advice.*
 
 ---
 
-## 3. Why Author Autonomy Matters Just as Much as Sovereignty
-In technical governance, people often focus exclusively on **Sovereignty**—building cryptographic walls and custody records. True creator protection requires **both Sovereignty and Autonomy** working together:
+## 1. Scope & Governance Distinction: Good-Faith Ecosystems vs. Malicious Extraction
+
+`Berne-Provenance-Toolkit` (`v2.0`) distinguishes between collaborative knowledge work and exploitative extraction:
+1. **Good-Faith Constellation Ecosystems & Reversible Corrections:** In open research networks and digital gardens, ideas evolve and synthesize legitimately. When participants maintain transparent lineage (`synthesis_mode: "synthesis"` or `modified: true`) and enable reversible corrections for dropped metadata, minor drift is normal organization rather than misconduct.
+2. **Malicious Scraping, Attribution Stripping & Opaque Aggregators:** Conversely, scrapers and MCP wrappers become harmful when they strip author identities, present mutated LLM outputs as verbatim (`modified: false`), or launder downstream mirrors to sever creators from their work.
+
+---
+
+## 2. What This Tool Does
+
+The toolkit provides four core zero-dependency components:
+1. **Zero-Dependency Forensic CLI Tools (`audit-tools/`):** Includes `generate_manifest.py` for SHA-256 JSONL custody ledgers and paragraph chunk hashes, `extractors/pdf_stdlib.py` for offline PDF stream/metadata extraction using standard Python libraries, and `mcp_provenance_auditor.py` for auditing MCP JSON-RPC responses and scraped text.
+2. **MCP Server Middleware & Git Automation (`integrations/`, `.github/`):** Features the `@berne_provenance` decorator (`integrations/mcp_middleware.py`) and pre-commit/CI workflows.
+3. **Ecosystem Bridges & Exporters (`integrations/spdx_bridge.py`, `governance/exporters.py`):** Importers for `CITATION.cff` and SPDX JSON SBOMs, plus exporters for W3C ODRL 2.2 JSON-LD, C2PA-aligned assertions, and OpenSSH Ed25519 signatures.
+4. **Plain-Language Rights Curriculum (`curriculum/`):** Practical guides on how international copyright law automatically protects human authors despite open licenses like `MIT` or `CC-BY-4.0`.
+
+---
+
+## 3. The Berne Convention in Plain English
+
+The **Berne Convention for the Protection of Literary and Artistic Works** (1886) governs international protection for creative and technical works:
+* **Automatic Protection Without Formalities (Article 5(2)):** Copyright attaches automatically upon fixation without government registration.
+* **Original Intellectual Creation (Article 2):** Covers works reflecting deliberate human creative choices, distinct from automated scraping or unedited LLM mutations.
+* **Inalienable Moral Rights (Article 6bis · Irish CRRA 2000, Chapter 7):** Encompasses the **Right of Attribution (Paternity)**, **Right of Integrity** (objection to harmful distortion or alteration), and protection against false attribution.
+
+---
+
+## 4. Author Sovereignty & Author Autonomy
 
 | Dimension | What It Means in Practice | How This Toolkit Supports It |
 | :--- | :--- | :--- |
-| **Author Sovereignty** *(Boundary & Custody)* | **Controlling your perimeter and proving origin.** Signing your artifacts, maintaining tamper-evident manifests, and preventing unauthorized appropriation. | `SHA-256` custody chains (`generate_manifest.py`), `Ed25519` signatures, and W3C `ODRL` policies (`sovereignty.template.jsonld`). |
-| **Author Autonomy** *(Agency & Voice)* | **Retaining active human choice over how your work travels and speaks.** Deciding how your ideas are framed, ensuring automated tools do not flatten or distort your voice, and preserving human agency against opaque extraction. | Plain-language legal literacy (`curriculum/`) plus forensic MCP auditing (`mcp_provenance_auditor.py`) that exposes silent distortion and attribution stripping. |
-
-* **Sovereignty without Autonomy** leaves an author isolated behind locked walls with no safe way to share work openly.
-* **Autonomy without Sovereignty** leaves an author's voice defenseless when automated scrapers and MCP tools strip context and rewrite intent.
-* **Together**, they let authors publish openly under permissive licenses like `MIT` while keeping verifiable attribution, structural integrity, and human agency intact.
+| **Author Sovereignty** *(Boundary & Custody)* | Controlling perimeters and proving origin via tamper-evident manifests and signed artifacts. | Dual-hash SHA-256 ledgers (`generate_manifest.py`), OpenSSH Ed25519 signatures (`exporters.py`), and W3C ODRL policies. |
+| **Author Autonomy** *(Agency & Voice)* | Retaining human agency over how work travels, supporting good-faith synthesis while preventing distortion. | Multi-source synthesis attribution (`sources[]`), legal literacy curriculum, and forensic MCP auditing. |
 
 ---
 
-## 4. Forensic Defect Taxonomy (What the CLI Tool Detects)
+## 5. Forensic Defect Taxonomy
 
-| Audit Code | Statutory / Technical Basis | Forensic Signal Detected in MCP / Aggregators |
-| :--- | :--- | :--- |
-| **`BERNE-6BIS-PATERNITY`** | Berne Art. 6bis(1) · CRRA 2000 § 107 | Text matches an anchored source fingerprint (`SHA-256` / shingle overlap), but author identity (`ORCID` / name) or canonical URI is missing. |
-| **`BERNE-6BIS-INTEGRITY`** | Berne Art. 6bis(1) · CRRA 2000 § 109 | Artifact retains author attribution or DOI (`modified != true`), but `SHA-256` digest fails verification due to silent LLM rewriting or truncation. |
-| **`PROVENANCE-HOP-DRIFT`** | Chain-of-Custody Integrity | Aggregator or MCP response cites a downstream scraper or mirror fork instead of the upstream canonical DOI or origin repository. |
-| **`MCP-SCHEMA-UNBOUND`** | W3C ODRL · Typed MCP Responses | MCP tool dumps flat, unattributed text strings without `author_name`, `author_orcid`, `source_uri`, `license_spdx`, `sha256`, or `modified` fields. |
+* **`BERNE-6BIS-PATERNITY`** (Berne Art. 6bis(1) · CRRA 2000 § 107): Fingerprint matches source, but author identity or canonical URI is missing.
+* **`BERNE-6BIS-INTEGRITY`** (Berne Art. 6bis(1) · CRRA 2000 § 109): Payload claims verbatim status (`modified != true`), but SHA-256 or chunk digest fails verification.
+* **`PROVENANCE-HOP-DRIFT`**: Response cites a downstream mirror or scraper instead of the upstream canonical DOI/repository.
+* **`MCP-SCHEMA-UNBOUND`** (W3C ODRL): MCP tool outputs flat, unattributed text or omits required metadata fields.
+* **`PROVENANCE-LAUNDERING-SYNTHESIS`**: Significant 5-gram shingle overlap detected across multiple anchored sources without declaring upstream references in `sources[]`.
 
 ---
 
-## 5. Repository Structure
+## 6. Repository Structure
 
 ```text
 Berne-Provenance-Toolkit/
-├── README.md                                              # Tool Overview, Berne Primer, Autonomy & Defect Taxonomy
-├── run_self_test.sh                                       # Zero-dependency end-to-end self-test script
-├── curriculum/
-│   ├── README.md                                          # Curriculum index & learning path
-│   ├── 01-berne-convention-and-author-autonomy.md         # Plain-language guide to Berne Art. 2/5/6bis & CRRA 2000
-│   ├── 02-open-licenses-vs-moral-rights.md                # Why MIT & CC-BY-4.0 do not waive moral rights
-│   └── 03-anatomy-of-mcp-and-aggregator-laundering.md     # How multi-hop pipelines strip lineage
-├── audit-tools/
-│   ├── generate_manifest.py                               # Zero-dependency SHA-256 manifest generator CLI
-│   ├── mcp_provenance_auditor.py                          # Zero-dependency Python 3 forensic CLI auditor
-│   └── mcp-provenance.schema.json                         # Drop-in JSON Schema for provenance-safe MCP tools
-├── governance/
-│   └── sovereignty.template.jsonld                        # Author-agnostic W3C ODRL + Schema.org template
-└── manifest/
-    └── provenance-chain.example.jsonl                     # Author-agnostic example SHA-256 custody ledger
+├── README.md                                              # Overview, Epistemic Humility Notice, Berne Primer & CLI Guide
+├── ROADMAP.md                                             # Engineering Uplift Roadmap (v1.0 -> v2.0)
+├── run_self_test.sh                                       # Zero-dependency 8-stage end-to-end self-test harness
+├── .pre-commit-hooks.yaml                                 # Pre-commit hook definition for automated verification
+├── .github/workflows/provenance-audit.yml                 # GitHub Actions CI workflow
+├── curriculum/                                            # Plain-language rights guides (Articles 2, 5, 6bis, open licenses)
+├── audit-tools/                                           # CLI tools (generate_manifest.py, auditor, PDF extractor, schemas)
+├── integrations/                                          # MCP middleware (@berne_provenance) & SPDX/CITATION bridges
+├── governance/                                            # W3C ODRL templates & C2PA/OpenSSH exporters
+└── manifest/provenance-chain.example.jsonl                # Example custody ledger
 ```
 
 ---
 
-## 6. Quick Forensic Workflow (Offline, Zero Dependencies)
+## 7. Quick Forensic Workflow (Offline, Zero Dependencies)
 
 ```bash
-# 1. Generate a canonical SHA-256 manifest for your own documents
+# 1. Generate a canonical v1.2.0 SHA-256 & chunk manifest
 python3 audit-tools/generate_manifest.py \
   --root ./docs \
   --author "Your Name" \
   --orcid "0000-0000-0000-0000" \
   --base-uri "https://github.com" \
   --license "MIT" \
+  --doi "10.5281/zenodo.0000000" \
   --out manifest/provenance-chain.jsonl
 
-# 2. Audit an MCP JSON response or scraped Markdown file against your manifest
+# 2. Audit an MCP JSON-RPC response or scraped file
 python3 audit-tools/mcp_provenance_auditor.py \
   --manifest manifest/provenance-chain.jsonl \
   --inspect sample_mcp_response.json
+
+# 3. Export manifest to W3C ODRL 2.2 or C2PA-compatible JSON assertions
+python3 governance/exporters.py \
+  --manifest manifest/provenance-chain.jsonl \
+  --format odrl \
+  --out governance/policy.odrl.jsonld
+
+# 4. Run the offline 8-stage self-test suite
+bash run_self_test.sh
 ```
